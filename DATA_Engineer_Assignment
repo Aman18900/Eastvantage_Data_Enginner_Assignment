@@ -1,0 +1,67 @@
+1. Connecting to the SQLITE3 database
+
+import sqlite3
+import csv
+
+# Connect to the SQLite3 database
+conn = sqlite3.connect('my_database.db')
+cursor = conn.cursor()
+
+1. SQL query to extract total quantities of each item bought per customer aged 18-35
+SELECT
+    c.customer_id,
+    c.age,
+    'x' AS item,
+    COALESCE(SUM(r.quantity_x), 0) AS total_quantity
+FROM customers c
+LEFT JOIN receipts r ON c.customer_id = r.customer_id
+WHERE c.age BETWEEN 18 AND 35
+GROUP BY c.customer_id
+HAVING total_quantity > 0
+
+UNION
+
+SELECT
+    c.customer_id,
+    c.age,
+    'y' AS item,
+    COALESCE(SUM(r.quantity_y), 0) AS total_quantity
+FROM customers c
+LEFT JOIN receipts r ON c.customer_id = r.customer_id
+WHERE c.age BETWEEN 18 AND 35
+GROUP BY c.customer_id
+HAVING total_quantity > 0
+
+UNION
+
+SELECT
+    c.customer_id,
+    c.age,
+    'z' AS item,
+    COALESCE(SUM(r.quantity_z), 0) AS total_quantity
+FROM customers c
+LEFT JOIN receipts r ON c.customer_id = r.customer_id
+WHERE c.age BETWEEN 18 AND 35
+GROUP BY c.customer_id
+HAVING total_quantity > 0
+"""
+
+# Execute the query
+cursor.execute(sql_query)
+
+# Fetch the results
+results = cursor.fetchall()
+
+# Close the database connection
+conn.close()
+
+# Write the results to a CSV file
+with open('output.csv', 'w', newline='') as csvfile:
+    csv_writer = csv.writer(csvfile, delimiter=';')
+    
+    # Write header
+    csv_writer.writerow(['Customer', 'Age', 'Item', 'Quantity'])
+    
+    # Write data
+    csv_writer.writerows(results)
+
